@@ -1,0 +1,16 @@
+version: '2'
+services:
+  vault:
+    build: ./vault
+    volumes:
+      - $PWD/vault/configure/config:/etc/vault
+      - $PWD/vault/bootstrap:/root/bootstrap
+      - $PWD/vault/data:/var/lib/vault/data
+    ports:
+      - 8200:8200
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+      - VAULT_ADDRESS=http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK

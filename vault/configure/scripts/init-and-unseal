@@ -1,0 +1,54 @@
+#! /bin/bash
+
+set -euo pipefail
+
+: "${BOOTSTRAP_DIR:=$HOME/bootstrap}"
+: "${BOOTSTRAP_INIT_DATA:=${BOOTSTRAP_DIR}/init.json}"
+
+vault:init() {
+  vault operator init -format=json
+}
+
+vault:is-init-output-file-exist() {
+  [[ -f "$BOOTSTRAP_INIT_DATA" ]]
+}
+
+vault:unseal() {
+  jq -r '.unseal_keys_b64[0:3][]'  \
+    | xargs -t -n 1 vault operator unseal
+}
+
+vault:is-running() {
+  nc -vz 127.0.0.1 8200
+}
+
+vault:is-initialized() {
+  jq -e '.initialized' < <(vault status -format=json)
+}
+
+vault:is-sealed() {
+  jq -e '.sealed' < <(vault status -format=json)
+}
+
+
+vault:init-and-unseal() {
+  if vault:is-running; then
+    if vault:is-initialized; then
+      >&2 echo "INFO: Already initialized"
+      if ! vault:is-init-output-file-exist; then
+        >&2 echo "ERROR: Lost initialization data file"
+        exit 1
+      fi
+    else
+      >&2 echo "INFO: Not initialized. Going to init"
+      vault:init > $BOOTSTRAP_INIT_DATA
+    fi
+
+    if vault:is-sealed; then
+      >&2 echo "INFO: It is sealed. Unsealing..."
+      vault:unseal < "$BOOTSTRAP_INIT_DATA"
+    fi
+  fi
+}
+
+vault:init-and-unseal

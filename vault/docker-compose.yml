@@ -1,0 +1,19 @@
+version: '2'
+services:
+  vault:
+    image: vault:dc
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./configure/config:/etc/vault
+      - ./bootstrap:/root/bootstrap
+      - ./data:/var/lib/vault/data
+    ports:
+      - 8200:8200
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+      - VAULT_ADDRESS=http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK

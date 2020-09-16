@@ -1,2 +1,2 @@
 vault.clean:
-	rm -rf vault/data/* vault/bootstrap/*
+	rm -rf data/* bootstrap/*
